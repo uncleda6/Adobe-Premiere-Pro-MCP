@@ -49,7 +49,7 @@ function attachHandlers(server: WebSocketServer) {
 // restarted), and without a retry every surviving instance stays useless for the
 // rest of its life, reporting "Premiere Pro is not connected" forever.
 function bind() {
-  const server = new WebSocketServer({ port: WS_PORT });
+  const server = new WebSocketServer({ host: "127.0.0.1", port: WS_PORT });
 
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {

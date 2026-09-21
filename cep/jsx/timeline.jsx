@@ -23,7 +23,8 @@ function getTimelineClips(trackType, trackIndex) {
           inPoint: clip.inPoint.seconds,
           outPoint: clip.outPoint.seconds,
           mediaType: clip.mediaType,
-          enabled: clip.isSelected(),
+          enabled: !clip.disabled,
+          selected: clip.isSelected(),
         });
       }
     }
@@ -105,13 +106,20 @@ function removeClip(trackType, trackIndex, clipIndex, ripple) {
   return _ok();
 }
 
+function _razorTimecode(timeSec) {
+  var seq = app.project.activeSequence;
+  var frameDuration = new Time();
+  frameDuration.ticks = seq.timebase;
+  return _makeTime(timeSec).getFormatted(frameDuration, seq.videoDisplayFormat);
+}
+
 function razorClip(trackType, trackIndex, timeSec) {
   var e = _requireSequence();
   if (e) return e;
   app.enableQE();
   var qeSeq = qe.project.getActiveSequence();
   var qeTrack = trackType === "video" ? qeSeq.getVideoTrackAt(trackIndex) : qeSeq.getAudioTrackAt(trackIndex);
-  qeTrack.razor(_makeTime(timeSec).ticks);
+  qeTrack.razor(_razorTimecode(timeSec));
   return _ok();
 }
 
@@ -120,13 +128,13 @@ function razorAllTracks(timeSec) {
   if (e) return e;
   app.enableQE();
   var qeSeq = qe.project.getActiveSequence();
-  var ticks = _makeTime(timeSec).ticks;
+  var timecode = _razorTimecode(timeSec);
 
   for (var i = 0; i < qeSeq.numVideoTracks; i++) {
-    try { qeSeq.getVideoTrackAt(i).razor(ticks); } catch (ex) {}
+    try { qeSeq.getVideoTrackAt(i).razor(timecode); } catch (ex) {}
   }
   for (var i = 0; i < qeSeq.numAudioTracks; i++) {
-    try { qeSeq.getAudioTrackAt(i).razor(ticks); } catch (ex) {}
+    try { qeSeq.getAudioTrackAt(i).razor(timecode); } catch (ex) {}
   }
   return _ok();
 }

@@ -40,7 +40,7 @@ function connect() {
   setStatus("Connecting...", "connecting");
   log("Connecting to MCP server on port " + WS_PORT + "...");
 
-  var socket = new WebSocket("ws://localhost:" + WS_PORT);
+  var socket = new WebSocket("ws://127.0.0.1:" + WS_PORT);
   ws = socket;
 
   socket.onopen = function () {

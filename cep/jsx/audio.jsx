@@ -1,22 +1,31 @@
 /* Audio-specific functions */
 
+function _clipVolumeLevel(clip) {
+  for (var i = 0; i < clip.components.numItems; i++) {
+    var comp = clip.components[i];
+    if (/^Internal Volume/.test(comp.matchName) || comp.displayName.toLowerCase() === "volume") {
+      for (var j = 0; j < comp.properties.numItems; j++) {
+        var prop = comp.properties[j];
+        if (prop.displayName.toLowerCase() === "level" || prop.displayName === "级别") return prop;
+      }
+    }
+  }
+  return null;
+}
+
 function setClipVolume(trackIndex, clipIndex, volumeDb) {
   var e = _requireSequence();
   if (e) return e;
   var clip = _getClip("audio", trackIndex, clipIndex);
   if (!clip) return _err("Clip not found");
 
-  // Volume is in the audio clip's components, typically "Volume" component
-  for (var i = 0; i < clip.components.numItems; i++) {
-    var comp = clip.components[i];
-    if (comp.displayName.toLowerCase() === "volume") {
-      for (var j = 0; j < comp.properties.numItems; j++) {
-        if (comp.properties[j].displayName.toLowerCase() === "level") {
-          comp.properties[j].setValue(volumeDb, true);
-          return _ok({ volumeDb: volumeDb });
-        }
-      }
-    }
+  var level = _clipVolumeLevel(clip);
+  if (level) {
+    if (!isFinite(volumeDb) || volumeDb < -96 || volumeDb > 15) return _err("Volume must be between -96 and +15 dB");
+    // Premiere's normalized level has 0 dB at 10^(-15/20), not at 1.
+    level.setValue(volumeDb <= -96 ? 0 : Math.pow(10, (volumeDb - 15) / 20), true);
+    var raw = level.getValue();
+    return _ok({ volumeDb: raw > 0 ? 20 * Math.log(raw) / Math.LN10 + 15 : -96 });
   }
   return _err("Volume component not found");
 }
@@ -27,15 +36,10 @@ function getClipVolume(trackIndex, clipIndex) {
   var clip = _getClip("audio", trackIndex, clipIndex);
   if (!clip) return _err("Clip not found");
 
-  for (var i = 0; i < clip.components.numItems; i++) {
-    var comp = clip.components[i];
-    if (comp.displayName.toLowerCase() === "volume") {
-      for (var j = 0; j < comp.properties.numItems; j++) {
-        if (comp.properties[j].displayName.toLowerCase() === "level") {
-          return JSON.stringify({ volumeDb: comp.properties[j].getValue() });
-        }
-      }
-    }
+  var level = _clipVolumeLevel(clip);
+  if (level) {
+    var raw = level.getValue();
+    return JSON.stringify({ volumeDb: raw > 0 ? 20 * Math.log(raw) / Math.LN10 + 15 : -96 });
   }
   return _err("Volume component not found");
 }
