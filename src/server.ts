@@ -16,6 +16,16 @@ async function main() {
   console.error("[MCP] Premiere Pro MCP server running");
 }
 
+// ---- Orphan guard --------------------------------------------------------
+// Claude Desktop does not always kill this process when a session ends, so
+// stale instances pile up. Exit as soon as the client closes our stdin.
+function exitSoon(reason: string) {
+  console.error(`[MCP] exiting: ${reason}`);
+  setTimeout(() => process.exit(0), 200);
+}
+process.stdin.on("end", () => exitSoon("stdin ended"));
+process.stdin.on("close", () => exitSoon("stdin closed"));
+
 main().catch((err) => {
   console.error("Fatal error:", err);
   process.exit(1);

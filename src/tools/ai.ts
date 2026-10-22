@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { callPremiere, toolResult, isConnected } from "../bridge.js";
+import { callPremiere, toolResult, ensureConnected } from "../bridge.js";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
@@ -122,7 +122,7 @@ export function registerAiTools(server: McpServer) {
 
       // Import into Premiere Pro
       const shouldImport = params.import_to_premiere !== false;
-      if (shouldImport && isConnected()) {
+      if (shouldImport && (await ensureConnected())) {
         try {
           const filePath = outputPath.replace(/\\/g, "/");
           await callPremiere("importMedia", [JSON.stringify([filePath]), "", false]);
@@ -212,7 +212,7 @@ export function registerAiTools(server: McpServer) {
           const entry: any = { text: cap.text, file: outputPath, start: cap.start };
 
           // Import and place on timeline
-          if (params.add_to_timeline !== false && isConnected()) {
+          if (params.add_to_timeline !== false && (await ensureConnected())) {
             try {
               const filePath = outputPath.replace(/\\/g, "/");
               await callPremiere("importMedia", [JSON.stringify([filePath]), "", false]);

@@ -60,14 +60,16 @@ try {
         New-Item -ItemType Junction -Path $extensionPath -Target $cepSource | Out-Null
     }
     Write-Host ''
-    Write-Host 'Installed. Keep this project folder in place. Restart Premiere and open Window > Extensions > MCP Bridge.'
+    Write-Host 'Installed. Keep this project folder in place. Restart Premiere; the hidden CEP bridge service owns port 8097.'
+    Write-Host 'Open Window > Extensions > MCP Bridge for status and service startup. Update all MCP clients to protocol 2.'
     Write-Host 'Run the following in PowerShell to register this server with Codex CLI (existing name must be checked first):'
     $quotedNode = "'" + $nodePath.Replace("'", "''") + "'"
     $quotedServer = "'" + $serverPath.Replace("'", "''") + "'"
     Write-Host "codex mcp add premiere-pro -- $quotedNode $quotedServer"
     Write-Host 'For another MCP client, merge this entry into its configuration:'
     @{ mcpServers = @{ 'premiere-pro' = @{ command = $nodePath; args = @($serverPath) } } } | ConvertTo-Json -Depth 5
-    Write-Host 'Restart the MCP client. Connected requires the client to start this server; do not also run npm start.'
+    Write-Host 'Restart the MCP clients. Multiple stdio MCP processes can connect to the same hidden CEP service.'
+    Write-Host 'Check connected=true, mode=client, protocol=2 and jsxReady=true, then validate a short test project.'
 } catch {
     Write-Error -Message $_.Exception.Message -ErrorAction Continue
     exit 1

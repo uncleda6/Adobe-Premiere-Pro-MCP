@@ -4,51 +4,24 @@
   <meta charset="UTF-8">
   <title>MCP Bridge</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #1e1e1e;
-      color: #ccc;
-      padding: 12px;
-      font-size: 12px;
-      margin: 0;
-    }
-    #status {
-      padding: 8px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-    .connected { background: #1a3a1a; color: #4caf50; }
-    .disconnected { background: #3a1a1a; color: #f44336; }
-    .connecting { background: #3a3a1a; color: #ff9800; }
-    #log {
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 8px;
-      height: 100px;
-      overflow-y: auto;
-      font-family: monospace;
-      font-size: 11px;
-      white-space: pre-wrap;
-    }
-    button {
-      background: #0078d4;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 3px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
+    body { font-family: "Microsoft YaHei", Arial, sans-serif; background: #1e1e1e; color: #ccc; padding: 10px; font-size: 12px; margin: 0; }
+    #status { padding: 8px; border-radius: 4px; margin-bottom: 6px; font-weight: bold; }
+    .ok { background: #1a3a1a; color: #4caf50; }
+    .busy { background: #3a3a1a; color: #ffb74d; }
+    .bad { background: #3a1a1a; color: #f44336; }
+    #info { color: #999; margin-bottom: 6px; line-height: 1.5; }
+    #log { background: #111; border: 1px solid #333; border-radius: 4px; padding: 6px; height: 110px; overflow-y: auto;
+           font-family: Consolas, monospace; font-size: 11px; white-space: pre-wrap; }
+    button { background: #0078d4; color: #fff; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 6px; }
     button:hover { background: #106ebe; }
   </style>
 </head>
 <body>
-  <div id="status" class="disconnected">Disconnected</div>
+  <div id="status" class="bad">正在连接后台服务…</div>
+  <div id="info"></div>
   <div id="log"></div>
-  <button onclick="connect()">Reconnect</button>
+  <button id="restart">重启后台服务</button>
   <script src="js/CSInterface.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/panel.js"></script>
 </body>
 </html>

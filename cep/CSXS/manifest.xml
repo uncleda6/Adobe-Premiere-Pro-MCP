@@ -3,10 +3,11 @@
                    Version="7.0"
                    ExtensionBundleId="com.mcp.premiere.bridge"
                    ExtensionBundleName="MCP Bridge"
-                   ExtensionBundleVersion="1.0.0">
+                   ExtensionBundleVersion="2.0.0">
 
   <ExtensionList>
-    <Extension Id="com.mcp.premiere.bridge.panel" Version="1.0.0" />
+    <Extension Id="com.mcp.premiere.bridge.panel" Version="2.0.0" />
+    <Extension Id="com.mcp.premiere.bridge.service" Version="2.0.0" />
   </ExtensionList>
 
   <ExecutionEnvironment>
@@ -22,11 +23,15 @@
   </ExecutionEnvironment>
 
   <DispatchInfoList>
+    <!-- Status panel (Window > Extensions > MCP Bridge). UI only; safe to close. -->
     <Extension Id="com.mcp.premiere.bridge.panel">
       <DispatchInfo>
         <Resources>
           <MainPath>./index.html</MainPath>
-          <ScriptPath>./jsx/premiere.jsx</ScriptPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
         </Resources>
         <Lifecycle>
           <AutoVisible>true</AutoVisible>
@@ -36,8 +41,38 @@
           <Menu>MCP Bridge</Menu>
           <Geometry>
             <Size>
-              <Height>200</Height>
-              <Width>300</Width>
+              <Height>240</Height>
+              <Width>320</Width>
+            </Size>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+
+    <!-- Hidden bridge service: starts with Premiere, owns 127.0.0.1:8097, runs ExtendScript for all MCP clients. -->
+    <Extension Id="com.mcp.premiere.bridge.service">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./service.html</MainPath>
+          <ScriptPath>./jsx/premiere.jsx</ScriptPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>false</AutoVisible>
+          <StartOn>
+            <Event>com.adobe.csxs.events.ApplicationActivate</Event>
+            <Event>applicationActivate</Event>
+          </StartOn>
+        </Lifecycle>
+        <UI>
+          <Type>Custom</Type>
+          <Geometry>
+            <Size>
+              <Height>1</Height>
+              <Width>1</Width>
             </Size>
           </Geometry>
         </UI>

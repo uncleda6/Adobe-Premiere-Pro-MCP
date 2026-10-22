@@ -1,8 +1,16 @@
-# Premiere Pro MCP：PR 2023 Windows 适配版
+# Premiere Pro MCP：PR 2023 Windows 适配版（protocol 2）
 
 基于 [antipaster/Adobe-Premiere-Pro-MCP](https://github.com/antipaster/Adobe-Premiere-Pro-MCP) 修改，保留上游 MIT 许可证和归属。让 Codex 等 MCP 客户端通过本地服务控制 Premiere。
 
 已实测：**Windows、Premiere Pro 23.0.0（build 63）、中文界面、CEP 11.5.2**。完成过导入、创建序列、切割、删除与移动片段、调节片段音量、保存和直接导出。完整范围见 [修复与实测记录](docs/VALIDATION.md)。
+
+## 2026 年 10 月：Claude 多客户端桥接更新
+
+本次发布本机 Claude 优化后的源码：由 PR 内隐藏的 CEP 服务监听端口，各 AI 的 MCP 进程作为客户端连接。多个会话的请求统一排队、逐个执行，避免每个会话抢占同一个端口。可见面板显示客户端、队列、运行中的操作和日志，关闭状态面板不会关闭隐藏服务。
+
+普通请求默认等待 60 秒（可通过 `PPRO_MCP_TIMEOUT_MS` 配置），导出、渲染、导入等操作等待 15 分钟；超时会撤销尚未开始的排队请求，不能中断已经执行的 PR 操作。客户端关闭输入流后，MCP 进程会退出。
+
+发布副本保留 Claude 的运行时代码。新增自动回归检查模拟 ExtendScript 执行，验证多客户端队列；2026-10-22 发布检查时 PR 未运行，没有重做新版的 PR 内剪辑和导出实测。上面的剪辑实测来自早期 Windows 适配版。详见 [升级与协议说明](docs/PROTOCOL2.md)。
 
 ## 在另一台电脑安装
 
@@ -15,7 +23,7 @@
    ```
 
 4. 安装脚本会输出适用于当前电脑的 `codex mcp add premiere-pro -- ...` 命令，以及其他 MCP 客户端可用的 JSON。按你使用的客户端注册一次。已有同名配置时先核对，脚本不会自动覆盖。
-5. 重启 PR 与 MCP 客户端。在 PR 的 **窗口 → 扩展 → MCP Bridge** 中打开面板。客户端启动 MCP 服务后，面板应显示 `Connected`。先让客户端读取 PR 版本和当前序列，再用测试工程尝试剪辑。
+5. 重启 PR 与 MCP 客户端。隐藏服务配置为随 PR 启动；在 **窗口 → 扩展 → MCP Bridge** 打开状态面板，服务没启动时使用面板中的启动按钮。`get_connection_status` 应返回 `connected:true`、`mode:"client"`、`protocol:2`、`jsxReady:true`。先读取 PR 版本和当前序列，再用测试工程尝试剪辑和导出。
 
 如果只有 Codex 桌面应用、没有 `codex` 命令，在客户端的 MCP 设置中按脚本输出的 `command` 和 `args` 添加本地服务。命令是 Node 的完整路径，参数是当前仓库的 `dist/server.js` 完整路径；不要复制别人的电脑路径。
 
@@ -33,7 +41,8 @@
 
 ## 连接与故障排查
 
-- 默认使用 `127.0.0.1:8097`。MCP 客户端负责启动服务，不要同时另开 `npm start` 占用同一端口。多个客户端或会话争用端口可能导致部分会话无法控制 PR。
+- 默认使用 `127.0.0.1:8097` 的 TCP 行分隔 JSON 协议。PR 内的隐藏 CEP 服务占用端口，多个 MCP 客户端共享它。
+- 升级时同时更新 CEP 扩展与 MCP 编译文件。旧版使用 WebSocket，新旧协议不能混用；先关闭旧 MCP 会话，再重启 PR 和客户端。不要直接运行旧的批处理来批量结束所有 MCP 进程；先查明端口由哪个进程监听，详见升级说明。
 - `Connected` 仅代表桥接连通。通过读取版本、实际时间线变化和短片导出判断功能是否正常。
 - 面板缺失：确认 PR 是 2023、安装成功且已重启；本脚本仅设置 CEP 11，不保证其他版本。
 - 导出需要本机可用的 Premiere 编码预设，不能照搬另一台电脑的 `.epr` 路径。

@@ -1,5 +1,9 @@
 # Changes and host validation
 
+## 2026-10-22 protocol-2 publication
+
+The multi-client bridge is now published from the user's Claude implementation. The host editing/export observations in this document predate that transport update. Publication checks build TypeScript and exercise real local TCP connections with mocked host execution; Premiere was not reachable for a new host smoke test. See [protocol-2 source, migration and validation scope](PROTOCOL2.md).
+
 ## Provenance
 
 Community adaptation of https://github.com/antipaster/Adobe-Premiere-Pro-MCP . Original MIT license retained. This report covers the local PR 2023 adaptation, not upstream's complete tool catalog.
